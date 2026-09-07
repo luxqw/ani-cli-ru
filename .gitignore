@@ -131,3 +131,6 @@ dmypy.json
 # project files
 .idea/*
 .anicli_history
+# nix build symlinks
+result
+result-*

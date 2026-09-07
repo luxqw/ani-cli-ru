@@ -17,6 +17,7 @@ https://github.com/user-attachments/assets/d8bf90aa-a2df-48fe-a625-5e3a30a5cf67
 ## Index
 
 * [Установка](#Установка)
+    * [Nix / NixOS](#nix--nixos)
     * [API interface](#API-interface)
 * [Usage](#Usage)
     * [Check Updates](#Check-Updates)
@@ -40,6 +41,28 @@ https://github.com/user-attachments/assets/d8bf90aa-a2df-48fe-a625-5e3a30a5cf67
 - Минимальная установка, только CLI клиент
     - UV - `uv tool install anicli-ru` (рекомендуется)
     - PIPX - `pipx install anicli-ru`
+
+### Nix / NixOS
+
+Репозиторий содержит flake, пакет собирается со всеми зависимостями из nixpkgs (CLI + webserver, без `cookies`).
+`mpv` вшит в обёртку, отдельно ставить его не нужно.
+
+- Запуск без установки: `nix run github:vypivshiy/ani-cli-ru`
+- Окружение для разработки (все зависимости + `uv`, `ruff`, `mypy`, `mpv`): `nix develop`
+- Установка в систему — добавить flake как input:
+
+```nix
+{
+  inputs.anicli-ru = {
+    url = "github:vypivshiy/ani-cli-ru";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  # затем в конфигурации:
+  # environment.systemPackages = [ inputs.anicli-ru.packages.${pkgs.system}.default ];
+  # либо через оверлей: nixpkgs.overlays = [ inputs.anicli-ru.overlays.default ];
+}
+```
 
 ### Опциональные зависимости:
 
@@ -317,6 +340,7 @@ anicli cli [OPTIONS]
 
 - The `web` command is experimental and intended for local network use only, not suitable for production deployment
 - The `cli` command requires an MPV player to be installed and available in your system PATH
+  (the Nix package wraps the binary with `mpv` already on PATH, see [Nix / NixOS](#nix--nixos))
 - Both `--search` and `--ongoing` options cannot be used simultaneously in the cli command
 - Chunk size and TTL options support various suffixes for convenience:
   - Chunk size: k/K for kilobytes, m/M for megabytes, or plain integer for bytes

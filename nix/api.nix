@@ -1,38 +1,48 @@
 {
-  pkgs,
-  pyPkgs,
-  #
-  version ? null,
-  hash ? null,
+  lib,
+  buildPythonPackage,
+  fetchPypi,
+  pythonOlder,
+  # build-system
+  hatchling,
+  # dependencies
+  attrs,
+  cssselect,
+  httpx,
+  lxml,
+  typing-extensions,
 }:
 
-with pyPkgs;
-
-buildPythonApplication rec {
+buildPythonPackage rec {
   pname = "anicli_api";
-  inherit version;
+  version = "0.9.2";
   pyproject = true;
-  dontCheckRuntimeDeps = true;
 
-  src = pkgs.fetchPypi {
-    inherit
-      pname
-      version
-      hash
-      ;
+  src = fetchPypi {
+    inherit pname version;
+    hash = "sha256-8EKpLK04SgP3Xn8ZK82+0Dewwen/xYiDEeGozkYdhv8=";
   };
 
-  build-system = [
-    poetry-core
-    hatchling
-  ];
+  build-system = [ hatchling ];
 
-  dependencies = [
-    attrs
-    httpx
-    httpx.optional-dependencies.http2
-    hatchling
-    parsel
-    tqdm
-  ];
+  dependencies =
+    [
+      attrs
+      cssselect
+      httpx
+      lxml
+    ]
+    ++ httpx.optional-dependencies.brotli
+    ++ httpx.optional-dependencies.http2
+    ++ httpx.optional-dependencies.socks
+    ++ lib.optionals (pythonOlder "3.11") [ typing-extensions ];
+
+  pythonImportsCheck = [ "anicli_api" ];
+
+  meta = {
+    description = "Anime extractors api implementation";
+    homepage = "https://github.com/vypivshiy/anicli-api";
+    license = lib.licenses.mit;
+    platforms = lib.platforms.unix;
+  };
 }

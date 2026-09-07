@@ -1,69 +1,76 @@
 {
-  pkgs,
   lib,
+  pkgs,
+  callPackage,
+  buildPythonApplication,
+  # runtime binary.
+  # NB: not named `mpv` on purpose - inside `python3Packages` that name is taken
+  # by the python-mpv binding (a library with no `bin/`), and callPackage would
+  # inject it over this default
+  mpvPlayer ? pkgs.mpv,
+  # build-system
+  hatchling,
+  # dependencies
+  prompt-toolkit,
+  rich,
+  typer,
+  # web extra
+  fastapi,
+  jinja2,
+  python-multipart,
+  segno,
+  uvicorn,
+  #
+  anicli-api ? callPackage ./api.nix { },
+  src ? lib.cleanSource ../.,
 }:
 
 # watch anime in terminal (cli)
 # only russian sources
 
-let
-  pyPkgs = pkgs.python312Packages;
-in
-with pyPkgs;
-
-let
-    pname = "anicli_ru";
-    version = "5.0.16";
-in
-
 buildPythonApplication {
-  inherit pname version;
+  pname = "anicli-ru";
+  version = "6.1.3";
   pyproject = true;
 
-  src = pkgs.fetchPypi {
-    inherit pname version;
-    hash = "sha256-gM9on15RQIpQVJfWW/uPeN63vSSbCJt2mNN5zkvc5Jg=";
-  };
+  inherit src;
 
-  build-system = [
-    setuptools
-    hatchling
-  ];
+  build-system = [ hatchling ];
 
   dependencies = [
-    pkgs.mpv
-    hatchling
-    setuptools
-    (callPackage ./eggella.nix {
-      inherit pyPkgs;
-      version = "0.1.7";
-      hash = "sha256-8Vo39BePA86wcLKs/F+u2N7tpIpPrEyEPp3POszy050=";
-    })
-    (callPackage ./api.nix {
-      inherit pyPkgs;
-      version = "0.7.14";
-      hash = "sha256-zmB2U4jyDPCLuykUc6PyrlcTULaXDxQ8ZvyTmJfOI0s=";
-    })
+    anicli-api
+    prompt-toolkit
+    rich
+    typer
+    # web extra
+    fastapi
+    jinja2
+    python-multipart
+    segno
+    uvicorn
   ];
 
-  meta = with lib; {
-    description = ''
-      Watch anime in terminal (tui)
-      ! only russian sources !
-    '';
+  # the `cli` command spawns mpv via shutil.which, so it has to be on PATH
+  makeWrapperArgs = [
+    "--prefix"
+    "PATH"
+    ":"
+    (lib.makeBinPath [ mpvPlayer ])
+  ];
+
+  pythonImportsCheck = [
+    "anicli"
+    "anicli.web.server"
+  ];
+
+  meta = {
+    description = "Watch anime in terminal (only russian sources)";
     homepage = "https://github.com/vypivshiy/ani-cli-ru";
-    license = licenses.afl3;
-    platforms = platforms.linux;
-    maintainers = with maintainers; [
-      DADA30000
-      {
-        name = "Azik Kurbonov";
-        email = "xfalwa@gmail.com";
-        github = "mctrxnv";
-        githubId = 189107707;
-      }
-      ch4og
-    ];
+    # the shipped LICENSE file and the README both say GPL-3.0;
+    # `license = "MIT"` in pyproject.toml contradicts them
+    license = lib.licenses.gpl3Only;
+    platforms = lib.platforms.unix;
+    maintainers = with lib.maintainers; [ ch4og ];
     mainProgram = "anicli-ru";
   };
 }

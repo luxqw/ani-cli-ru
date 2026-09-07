@@ -405,6 +405,7 @@ async def index(request: Request):
     current_source = global_state.get_source()
 
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
             "request": request,
@@ -451,6 +452,7 @@ async def search(request: Request, q: str):
     extractor_cls = dynamic_load_extractor_module(source)
     if not extractor_cls:
         return templates.TemplateResponse(
+            request,
             "error.html",
             {
                 "request": request,
@@ -467,6 +469,7 @@ async def search(request: Request, q: str):
     extractors = get_extractor_modules()
 
     return templates.TemplateResponse(
+        request,
         "grid.html",
         {
             "request": request,
@@ -497,6 +500,7 @@ async def ongoing(request: Request):
     extractor_cls = dynamic_load_extractor_module(source)
     if not extractor_cls:
         return templates.TemplateResponse(
+            request,
             "error.html",
             {
                 "request": request,
@@ -514,6 +518,7 @@ async def ongoing(request: Request):
     extractors = get_extractor_modules()
 
     return templates.TemplateResponse(
+        request,
         "ongoing.html",
         {
             "request": request,
@@ -543,6 +548,7 @@ async def anime_details(request: Request, uid: str, from_page: str = None):
     result = storage.get(uid)
     if not result:
         return templates.TemplateResponse(
+            request,
             "error.html",
             {
                 "request": request,
@@ -582,6 +588,7 @@ async def anime_details(request: Request, uid: str, from_page: str = None):
     extractors = get_extractor_modules()
 
     return templates.TemplateResponse(
+        request,
         "episodes.html",
         {
             "request": request,
@@ -626,6 +633,7 @@ async def player(
     episode = storage.get(episode_uid)
     if not episode:
         return templates.TemplateResponse(
+            request,
             "error.html",
             {
                 "request": request,
@@ -638,6 +646,7 @@ async def player(
     sources = await episode.a_get_sources()
     if not sources:
         return templates.TemplateResponse(
+            request,
             "error.html",
             {
                 "request": request,
@@ -657,6 +666,7 @@ async def player(
 
     if not videos:
         return templates.TemplateResponse(
+            request,
             "error.html",
             {
                 "request": request,
@@ -742,6 +752,7 @@ async def player(
     extractors = get_extractor_modules()
 
     return templates.TemplateResponse(
+        request,
         "player.html",
         {
             "request": request,
